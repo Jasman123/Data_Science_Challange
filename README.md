@@ -85,3 +85,85 @@ This ensures a **clean, reproducible** machine learning process.
 df = pd.read_csv("train.csv")
 df_test = pd.read_csv("test.csv")
 ```
+## 2. Preprocessing
+
+```python
+numeric_cols = df.select_dtypes(include="number").columns
+df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+
+```
+## 3. Feature Engineering
+
+```python
+
+df["debt_to_income"] = df["TotalDebt"] / (df["AnnualIncome"] + 1)
+df["instalment_ratio"] = df["MonthlyPayment"] / (df["AnnualIncome"]/12 + 1)
+
+
+```
+
+## 4. XGBoost Training
+
+```python
+
+import xgboost as xgb
+
+xgb_model = xgb.XGBClassifier(
+    n_estimators=400,
+    max_depth=6,
+    learning_rate=0.05,
+    subsample=0.9
+)
+
+xgb_model.fit(X_train, y_train)
+
+
+```
+
+## 5. LightGBM Training
+
+```python
+
+import lightgbm as lgb
+
+lgb_model = lgb.LGBMClassifier(
+    n_estimators=600,
+    learning_rate=0.02,
+    num_leaves=31
+)
+
+lgb_model.fit(X_train, y_train)
+
+
+```
+## 6. Save Model
+
+```python
+
+import joblib
+joblib.dump(xgb_model, "best_xgb_model.pkl")
+joblib.dump(lgb_model, "best_lgb_model.pkl")
+
+
+```
+## 7. Generate Predictions
+
+```python
+
+predictions = xgb_model.predict(df_test)
+pd.DataFrame({
+    "id": df_test["id"],
+    "default": predictions
+}).to_csv("prediction_submission.csv", index=False)
+
+
+
+```
+
+
+
+
+
+
+
+
